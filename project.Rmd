@@ -1,0 +1,85 @@
+Weight Lifting Error Prediction
+========================================================
+### Introduction
+This is a project homework of **Practical Machine Learning** by Johns Hopkins on coursera.
+
+### Data 
+
+The training data for this project are available here: 
+
+[https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv]
+
+The test data are available here: 
+
+[https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv]
+
+The data for this project come from this source: [http://groupware.les.inf.puc-rio.br/har]. 
+
+### Goal
+The data is from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.
+My goal is using the machine learning techniques I learned to train a model based on the training data to predict test data.
+
+
+### Method Selection
+This is clearly a classification problem. 
+```{r cache=TRUE}
+training <- read.csv("pml-training.csv")
+testing <- read.csv("pml-testing.csv")
+```
+
+```{r echo=FALSE}
+set.seed(33833)
+library(caret)
+```
+
+dim(training)
+```
+Based on the fact there're a lot of variables in the dataset, my first hunch is *randome forest*.
+
+### Data Processing
+There're a lot of rows containing all *NA* in the *testing* dataset, so I decided to exclude these variables from *training*
+dataset.
+```{r}
+test<-testing[,-which(apply(testing,2,function(x)all(is.na(x))))]
+```
+Variables like X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window do not likely to be useful to predict the result, so I remove them too.
+```{r}
+select <- colnames(subset(test, select = -c(X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, problem_id)))
+```
+
+I split the training dataset into two parts, *train* for training the model, *mytest* for testing my model.
+```{r}
+inTrain <- createDataPartition(y=training$classe, p = 0.60, list=F)
+training <- training[,c(select, "classe")]
+train <- training[inTrain,]
+mytest <- training[-inTrain,]
+```
+
+### Model Training
+By default, *train()* use bootstrap method which is expensive for my laptop, so change it to *cross validation*
+```{r cache=TRUE}
+trControl = trainControl(method = "cv", number = 2)
+modFit <- train(classe ~ .,data=train, method="rf", trControl = trControl)
+```
+
+### Cross Validation
+```{r}
+pred <- predict(modFit, mytest)
+confusionMatrix(mytest$classe, pred)
+```
+The **Accuracy** is pretty high, based on the fact that **out of sample error** is 1 - accuracy, we can say the out of sample error is very low. So this model is good enough.
+
+### Generating Results Files For Course Project Submission
+```{r}
+finalpred <- predict(modFit, test)
+
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(as.character(finalpred))
+```
