@@ -31,7 +31,7 @@ testing <- read.csv("pml-testing.csv")
 set.seed(33833)
 library(caret)
 ```
-
+```{r}
 dim(training)
 ```
 Based on the fact there're a lot of variables in the dataset, my first hunch is *randome forest*.

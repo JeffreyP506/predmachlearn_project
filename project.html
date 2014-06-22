@@ -214,16 +214,20 @@ testing &lt;- read.csv(&quot;pml-testing.csv&quot;)
 ## Loading required package: ggplot2
 </code></pre>
 
-<p>dim(training)</p>
+<pre><code class="r">dim(training)
+</code></pre>
 
-<pre><code>Based on the fact there&#39;re a lot of variables in the dataset, my first hunch is *randome forest*.
+<pre><code>## [1] 19622   160
+</code></pre>
 
-### Data Processing
-There&#39;re a lot of rows containing all *NA* in the *testing* dataset, so I decided to exclude these variables from *training*
-dataset.
+<p>Based on the fact there&#39;re a lot of variables in the dataset, my first hunch is <em>randome forest</em>.</p>
 
-```r
-test &lt;- testing[, -which(apply(testing, 2, function(x) all(is.na(x))))]
+<h3>Data Processing</h3>
+
+<p>There&#39;re a lot of rows containing all <em>NA</em> in the <em>testing</em> dataset, so I decided to exclude these variables from <em>training</em>
+dataset.</p>
+
+<pre><code class="r">test &lt;- testing[, -which(apply(testing, 2, function(x) all(is.na(x))))]
 </code></pre>
 
 <p>Variables like X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window do not likely to be useful to predict the result, so I remove them too.</p>
@@ -248,22 +252,10 @@ mytest &lt;- training[-inTrain, ]
 modFit &lt;- train(classe ~ ., data = train, method = &quot;rf&quot;, trControl = trControl)
 </code></pre>
 
-<pre><code>## Loading required package: randomForest
-## randomForest 4.6-7
-## Type rfNews() to see new features/changes/bug fixes.
-</code></pre>
-
 <h3>Cross Validation</h3>
 
 <pre><code class="r">pred &lt;- predict(modFit, mytest)
-</code></pre>
-
-<pre><code>## Loading required package: randomForest
-## randomForest 4.6-7
-## Type rfNews() to see new features/changes/bug fixes.
-</code></pre>
-
-<pre><code class="r">confusionMatrix(mytest$classe, pred)
+confusionMatrix(mytest$classe, pred)
 </code></pre>
 
 <pre><code>## Confusion Matrix and Statistics
